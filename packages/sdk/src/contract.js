@@ -188,7 +188,8 @@ export const LIMITS = Object.freeze({
  */
 
 /**
- * @typedef {object} Connector
+ * @typedef {object} Connector Each method also gets the {@link Host} as its second argument,
+ *   for example `submit(input, host)`.
  * @property {(input: { options: Options }) => Promise<LanguagesResult|ErrorResult>} languages
  * @property {(input: SubmitInput) => Promise<SubmitResult|ErrorResult>} submit
  * @property {(input: { options: Options, submissionKey: string })
