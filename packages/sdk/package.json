@@ -4,7 +4,8 @@
   "description": "Contract, fake host, and conformance suite for AEM translation connectors",
   "type": "module",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./src/index.js",
+    "./testing": "./src/testing/index.js"
   },
   "files": [
     "src"

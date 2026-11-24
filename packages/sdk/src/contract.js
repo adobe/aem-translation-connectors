@@ -167,9 +167,20 @@ export const LIMITS = Object.freeze({
  */
 
 /**
+ * @typedef {object} HostResponse The vendor's response to an egress or upload.
+ * @property {number} status
+ * @property {Record<string, string>} headers Lowercase names.
+ * @property {string} body
+ * @property {'base64'} [bodyEncoding] Set when the body is binary.
+ */
+
+/**
  * @typedef {object} Host
- * @property {(msg: EgressMessage|UploadMessage|LogMessage) => Promise<unknown>} message
- *   The only I/O a connector may do.
+ * @property {(msg: EgressMessage|UploadMessage|LogMessage)
+ *   => Promise<HostResponse|import('./errors.js').ErrorResult|void>} message
+ *   The only I/O a connector may do. Resolves to an ErrorResult with a host error code
+ *   (`timeout`, `payload-too-large`, `vendor-sign-in-required`) when the host stops the call.
+ *   `log` resolves to nothing.
  */
 
 /**
