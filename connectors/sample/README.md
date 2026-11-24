@@ -10,7 +10,7 @@ It is not published.
 - `src/connector.js`: the six contract methods. It maps vendor HTTP errors to connector error codes and vendor job states to item statuses.
 - `test/conformance.test.js`: the conformance suite, with error scenarios for each method.
 - `test/connector.test.js`: unit tests for behavior that the suite does not cover.
-- `test/fixtures/`: hand-written vendor interactions. A real connector records them against the vendor sandbox.
+- `test/fixtures/`: hand-written vendor interactions.
 
 ## Commands
 

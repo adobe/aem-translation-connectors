@@ -97,6 +97,8 @@ The build bundles `src/connector.js` into one self-contained ES module, `dist/co
 
 The fake host answers each `host.message` call from recorded interactions. Tests need no network and no credentials.
 
+Write the interactions from the vendor's API docs, or capture real responses from the vendor sandbox. Remove credentials, tokens, and customer content before you commit a fixture.
+
 ```js
 import { createFakeHost, loadInteractions } from '@adobe/aem-translation-connector-sdk/testing';
 
@@ -105,27 +107,6 @@ const { host, pending } = createFakeHost({ manifest, interactions });
 ```
 
 The fake host enforces the host rules. It throws `HostPolicyError` on a host that is not in `egressHosts`, on http, or on an unknown asset.
-
-### Record
-
-Record mode sends each call to the vendor sandbox and keeps a redacted copy as an interaction.
-
-1. Set each credential as an env var named `CONNECTOR_<ID>_<FIELD>`, for example `CONNECTOR_SAMPLE_APIKEY`.
-2. Create a recorder and pass it to the fake host.
-3. Save the interactions as a fixture.
-
-```js
-import { createFakeHost, createRecorder, saveInteractions } from '@adobe/aem-translation-connector-sdk/testing';
-
-const recorder = createRecorder({ manifest });
-const { host } = createFakeHost({ manifest, recorder });
-await connector.languages({ options }, host);
-await saveInteractions(new URL('fixtures/languages.json', import.meta.url), recorder.interactions);
-```
-
-Record mode supports the `api-key-header`, `bearer-static`, and `basic` auth profiles.
-
-Before it keeps an interaction, record mode removes credential values from the URL, the request body, the response headers, and text response bodies. It also drops the `set-cookie`, `authorization`, and `www-authenticate` response headers. It cannot redact binary bodies. Check each fixture before you commit it.
 
 ### Conformance suite
 
@@ -167,5 +148,5 @@ The suite checks:
 ## Entry points
 
 - `@adobe/aem-translation-connector-sdk`: contract constants and types, error helpers, and the manifest schema and validator.
-- `@adobe/aem-translation-connector-sdk/testing`: fake host, recorder, conformance suite, and checks.
+- `@adobe/aem-translation-connector-sdk/testing`: fake host, conformance suite, and checks.
 - `@adobe/aem-translation-connector-sdk/build`: `buildConnector()`, the API behind `aem-connector-build`.
