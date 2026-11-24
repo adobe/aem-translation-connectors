@@ -15,3 +15,4 @@ export * from './recorder.js';
 export * from './checks.js';
 export * from './static-scan.js';
 export * from './conformance.js';
+export * from './states.js';

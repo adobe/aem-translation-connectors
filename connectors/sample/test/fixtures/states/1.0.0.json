@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "ids": [
+    "p1"
+  ],
+  "targets": [
+    "de",
+    "fr"
+  ],
+  "calls": [
+    {
+      "method": "status",
+      "input": {
+        "state": {
+          "jobId": "job-42"
+        }
+      },
+      "interactions": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "https://api.sample.example.com/v1/projects/demo/jobs/job-42"
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"progress\":50,\"documents\":[{\"id\":\"p1\",\"lang\":\"de\",\"state\":\"done\"},{\"id\":\"p1\",\"lang\":\"fr\",\"state\":\"translating\"}]}"
+          }
+        }
+      ]
+    },
+    {
+      "method": "fetch",
+      "input": {
+        "state": {
+          "jobId": "job-42"
+        },
+        "lang": "de",
+        "ids": [
+          "p1"
+        ]
+      },
+      "interactions": [
+        {
+          "request": {
+            "method": "GET",
+            "url": "https://api.sample.example.com/v1/projects/demo/jobs/job-42/translations/de?ids=p1"
+          },
+          "response": {
+            "status": 200,
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"documents\":[{\"id\":\"p1\",\"html\":\"<main><h1>Frühjahrsstart</h1><p>Unser neues Sortiment ist da.</p></main>\"}]}"
+          }
+        }
+      ]
+    }
+  ]
+}

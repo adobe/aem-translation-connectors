@@ -11,17 +11,20 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { conformance, loadInteractions } from '@adobe/aem-translation-connector-sdk/testing';
+import { conformance, loadInteractions, loadStateFixtures } from '@adobe/aem-translation-connector-sdk/testing';
 import connector from '../dist/connector.js';
 
 const manifest = JSON.parse(await readFile(new URL('../dist/connector.json', import.meta.url), 'utf-8'));
 const load = (name) => loadInteractions(new URL(`fixtures/${name}.json`, import.meta.url));
+const statesDir = new URL('fixtures/states/', import.meta.url);
 
 conformance({
   connector,
   manifest,
   entry: new URL('../dist/connector.js', import.meta.url),
   options: { project: 'demo' },
+  states: await loadStateFixtures(statesDir),
+  saveStatesTo: process.env.CONNECTOR_SAVE_STATES ? statesDir : undefined,
   scenarios: {
     languages: { interactions: await load('languages') },
     submit: {

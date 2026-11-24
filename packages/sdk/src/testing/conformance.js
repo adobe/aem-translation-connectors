@@ -20,6 +20,7 @@ import {
 } from './checks.js';
 import { createFakeHost } from './fake-host.js';
 import { scanFile } from './static-scan.js';
+import { saveStateFixture } from './states.js';
 
 function assertNone(errors) {
   if (errors.length) {
@@ -52,6 +53,10 @@ const roundTrip = (value) => JSON.parse(JSON.stringify(value));
  * @param {object} opts.scenarios Inputs and recorded interactions for each method:
  *   `languages`, `submit`, `status`, `fetch`, and `cancel` and `reconcile` when the
  *   connector has them. `errors` is a list of `{ name, method, input?, interactions, code }`.
+ * @param {object[]} [opts.states] State fixtures from earlier releases, from
+ *   `loadStateFixtures`. Those in the same major as `manifest.version` must still work.
+ * @param {string|URL} [opts.saveStatesTo] When set, saves this release's status and fetch
+ *   calls as a state fixture in this folder.
  * @param {number} [opts.timeoutMs] Time limit for each call. Defaults to the worker limit, 15 s.
  * @param {Function} [opts.describe]
  * @param {Function} [opts.it]
@@ -63,6 +68,8 @@ export function conformance({
   allowImports = false,
   options = {},
   scenarios = {},
+  states = [],
+  saveStatesTo,
   timeoutMs = LIMITS.workerTimeoutMs,
   describe = globalThis.describe,
   it = globalThis.it,
@@ -103,7 +110,8 @@ export function conformance({
     return s;
   }
 
-  const flow = {};
+  const flow = { calls: [] };
+  const majorOf = (version) => version?.split('.')[0];
 
   describe(`${manifest.id ?? 'connector'} conformance`, () => {
     describe('module', () => {
@@ -142,6 +150,9 @@ export function conformance({
         if (!flow.state) {
           throw new AssertionError({ message: 'needs a passing submit' });
         }
+        flow.calls.push({
+          method: 'status', input: { state: flow.state }, interactions: scenario('status').interactions,
+        });
         const { result, errors } = await call('status', { state: flow.state }, scenario('status'));
         assertNone([...errors, ...checkStatus(result, {
           ids: flow.items.map(({ id }) => id), targets: flow.targets, items: flow.items,
@@ -156,9 +167,11 @@ export function conformance({
         const s = scenario('fetch');
         const ids = s.ids ?? flow.items.filter(({ kind }) => kind !== 'external').map(({ id }) => id);
         const input = { state: flow.state, lang: s.lang ?? flow.targets[0], ids };
+        flow.calls.push({ method: 'fetch', input, interactions: s.interactions });
         const { result, errors } = await call('fetch', input, s);
         assertNone([...errors, ...checkFetch(result, { ...input, items: flow.items })]);
         flow.state = roundTrip(result.state);
+        flow.fetched = true;
       });
 
       if (manifest.capabilities?.cancel) {
@@ -181,6 +194,45 @@ export function conformance({
         });
       }
     });
+
+    if (states.length || saveStatesTo) {
+      describe('state from earlier releases', () => {
+        if (!manifest.version) {
+          it('needs a built manifest', () => {
+            throw new AssertionError({ message: 'state checks need manifest.version; use the built connector.json' });
+          });
+          return;
+        }
+        states
+          .filter(({ version }) => majorOf(version) === majorOf(manifest.version))
+          .forEach((fixture) => {
+            it(`reads state from ${fixture.version}`, async () => {
+              const problems = await fixture.calls.reduce(async (previous, step) => {
+                const found = await previous;
+                const { result, errors } = await call(step.method, step.input, step);
+                const check = step.method === 'fetch' ? checkFetch : checkStatus;
+                const shape = check(result, { ...fixture, ...step.input });
+                return [...found, ...errors, ...shape.map((e) => `${step.method}: ${e}`)];
+              }, Promise.resolve([]));
+              assertNone(problems);
+            });
+          });
+
+        if (saveStatesTo) {
+          it(`saves state from ${manifest.version}`, async () => {
+            if (!flow.fetched) {
+              throw new AssertionError({ message: 'needs a passing submit, status, and fetch' });
+            }
+            await saveStateFixture(saveStatesTo, {
+              version: manifest.version,
+              ids: flow.items.map(({ id }) => id),
+              targets: flow.targets,
+              calls: flow.calls,
+            });
+          });
+        }
+      });
+    }
 
     describe('errors', () => {
       (scenarios.errors ?? []).forEach((s) => {

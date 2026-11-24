@@ -10,7 +10,8 @@
   "scripts": {
     "build": "aem-connector-build",
     "test": "npm run build && c8 mocha",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "save-states": "npm run build && CONNECTOR_SAVE_STATES=1 mocha"
   },
   "mocha": {
     "reporter": "mocha-multi-reporters",

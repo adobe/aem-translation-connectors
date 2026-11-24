@@ -169,3 +169,25 @@ The suite checks:
 - `@adobe/aem-translation-connector-sdk`: contract constants and types, error helpers, and the manifest schema and validator.
 - `@adobe/aem-translation-connector-sdk/testing`: fake host, recorder, conformance suite, and checks.
 - `@adobe/aem-translation-connector-sdk/build`: `buildConnector()`, the API behind `aem-connector-build`.
+
+### State from earlier releases
+
+The host stores `state` between calls, so a job that started on one release can finish on the next. Within a major, each release must read the `state` that every earlier release wrote.
+
+Each connector keeps one state fixture per release in `test/fixtures/states/<version>.json`. A fixture holds the status and fetch calls of the conformance flow, with their `state` and recorded interactions. Pass the fixtures to the suite:
+
+```js
+import { loadStateFixtures } from '@adobe/aem-translation-connector-sdk/testing';
+
+const statesDir = new URL('fixtures/states/', import.meta.url);
+
+conformance({
+  // ...
+  states: await loadStateFixtures(statesDir),
+  saveStatesTo: process.env.CONNECTOR_SAVE_STATES ? statesDir : undefined,
+});
+```
+
+- The suite replays each fixture in the same major as `manifest.version` against the current bundle. Fixtures from other majors are skipped.
+- `CONNECTOR_SAVE_STATES=1` writes the fixture for the current version. Commit it with the release. The sample has an `npm run save-states` script for this.
+- State checks need the built `dist/connector.json`, because they read `version` from it.

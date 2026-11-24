@@ -11,7 +11,10 @@
  */
 
 import assert from 'node:assert';
-import { conformance } from '../src/testing/index.js';
+import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { conformance, loadStateFixtures } from '../src/testing/index.js';
 
 const API = 'https://api.example.com';
 const HTML = '<p>The full content of the page to translate.</p>';
@@ -111,17 +114,15 @@ async function run(opts) {
   conformance({
     manifest, connector: makeConnector(), scenarios: makeScenarios(), describe, it, ...opts,
   });
-  const results = {};
-  for (const test of tests) {
+  return tests.reduce(async (previous, test) => {
+    const results = await previous;
     try {
-      // eslint-disable-next-line no-await-in-loop
       await test.body();
-      results[test.name] = 'pass';
+      return { ...results, [test.name]: 'pass' };
     } catch (e) {
-      results[test.name] = e.message;
+      return { ...results, [test.name]: e.message };
     }
-  }
-  return results;
+  }, Promise.resolve({}));
 }
 
 describe('conformance', () => {
@@ -239,5 +240,70 @@ describe('conformance', () => {
     const connector = makeConnector({ languages: () => new Promise(() => {}) });
     const results = await run({ connector, timeoutMs: 20 });
     assert.strictEqual(results['methods > languages'], 'languages took over 20 ms');
+  });
+});
+
+describe('conformance state replay', () => {
+  const built = { ...manifest, version: '1.2.0', integrity: `sha384-${'A'.repeat(64)}` };
+  let dir;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'connector-states-'));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true });
+  });
+
+  it('saves state, and a later release in the same major reads it', async () => {
+    const saved = await run({ manifest: built, saveStatesTo: dir });
+    assert.strictEqual(saved['state from earlier releases > saves state from 1.2.0'], 'pass');
+    assert.deepStrictEqual(await readdir(dir), ['1.2.0.json']);
+
+    const states = await loadStateFixtures(dir);
+    assert.deepStrictEqual(states[0].calls.map(({ method }) => method), ['status', 'fetch']);
+    const later = await run({ manifest: { ...built, version: '1.3.0' }, states });
+    assert.strictEqual(later['state from earlier releases > reads state from 1.2.0'], 'pass');
+  });
+
+  it('fails when a release cannot read an older state', async () => {
+    await run({ manifest: built, saveStatesTo: dir });
+    const states = await loadStateFixtures(dir);
+    const connector = makeConnector({
+      async status({ state }) {
+        return state.version === 2 ? { state, items: [] } : { error: { code: 'not-found', message: 'old state' } };
+      },
+    });
+    const results = await run({ manifest: { ...built, version: '1.3.0' }, states, connector });
+    assert.match(results['state from earlier releases > reads state from 1.2.0'], /status: unexpected error: not-found: old state/);
+  });
+
+  it('ignores state from other majors', async () => {
+    await run({ manifest: built, saveStatesTo: dir });
+    const states = await loadStateFixtures(dir);
+    const results = await run({ manifest: { ...built, version: '2.0.0' }, states });
+    assert.strictEqual(results['state from earlier releases > reads state from 1.2.0'], undefined);
+  });
+
+  it('needs a built manifest', async () => {
+    const results = await run({ states: [{ version: '1.0.0', calls: [] }] });
+    assert.match(results['state from earlier releases > needs a built manifest'], /need manifest.version/);
+  });
+
+  it('does not save when the flow fails', async () => {
+    const connector = makeConnector({ submit: async () => ({ state: 'bad', jobs: [] }) });
+    const results = await run({ manifest: built, saveStatesTo: dir, connector });
+    assert.strictEqual(results['state from earlier releases > saves state from 1.2.0'], 'needs a passing submit, status, and fetch');
+    assert.deepStrictEqual(await readdir(dir), []);
+  });
+});
+
+describe('loadStateFixtures', () => {
+  it('returns no fixtures for a missing folder', async () => {
+    assert.deepStrictEqual(await loadStateFixtures(join(tmpdir(), 'no-such-folder-for-states')), []);
+  });
+
+  it('rethrows other read errors', async () => {
+    await assert.rejects(loadStateFixtures(new URL(import.meta.url)), { code: 'ENOTDIR' });
   });
 });
