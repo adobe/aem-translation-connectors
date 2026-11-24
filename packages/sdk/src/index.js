@@ -10,4 +10,5 @@
  * governing permissions and limitations under the License.
  */
 
-export const CONTRACT_VERSION = 1;
+export * from './contract.js';
+export * from './errors.js';
