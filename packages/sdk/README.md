@@ -1,20 +1,95 @@
 # AEM Translation Connector SDK
 
-The contract that every AEM translation connector implements, plus tools to test a connector against it.
+The contract that every AEM translation connector implements, a build that bundles a connector, and tools to test it.
 
-## Installation
+[`connectors/sample`](../../connectors/sample) is a complete connector that uses all of this. Start from a copy of it.
 
-```bash
-npm install --save-dev @adobe/aem-translation-connector-sdk
+## Write a connector
+
+### Layout
+
+```text
+connectors/{id}/
+  connector.json        manifest
+  package.json          depends only on @adobe/aem-translation-connector-sdk
+  src/connector.js      the connector module
+  test/                 conformance and unit tests
+  test/fixtures/        recorded vendor interactions
 ```
 
-## Usage
+### Manifest
+
+`connector.json` declares what the connector needs from the host:
+
+```json
+{
+  "id": "sample",
+  "name": "Sample",
+  "contract": 1,
+  "entry": "connector.js",
+  "egressHosts": ["api.sample.example.com"],
+  "credentials": [{ "name": "apiKey", "required": true }],
+  "auth": { "profile": "api-key-header", "header": "x-api-key", "credential": "apiKey" },
+  "options": { "type": "object", "properties": { "project": { "type": "string" } } },
+  "capabilities": { "cancel": true, "maxBatchItems": 100, "maxBatchBytes": 5000000, "formats": ["html"] }
+}
+```
+
+- `egressHosts`: the only vendor hosts the connector can call. `*.example.com` allows any subdomain.
+- `credentials` and `auth`: the gateway adds the credentials to each egress request. The connector never sees them.
+- `options`: a JSON Schema for the site's settings. Each call gets them as `options`.
+- Do not set `version` or `integrity`. The build sets them.
+
+### Module
+
+`src/connector.js` has a default export with the contract methods. Each method gets its input and the `host`:
 
 ```js
-import { CONTRACT_VERSION } from '@adobe/aem-translation-connector-sdk';
+import { connectorError } from '@adobe/aem-translation-connector-sdk';
+
+const API = 'https://api.sample.example.com/v1';
+
+async function submit({ options, title, items, targets, submissionKey }, host) {
+  const res = await host.message({
+    type: 'egress',
+    method: 'POST',
+    url: `${API}/projects/${options.project}/jobs`,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: submissionKey, title, targets, documents: items }),
+  });
+  if (res.error) {
+    return res;
+  }
+  if (res.status === 401) {
+    return connectorError('auth-failed', 'the vendor rejected the API key');
+  }
+  const { id } = JSON.parse(res.body);
+  return { state: { jobId: id }, jobs: [{ id, targets }] };
+}
+
+export default { languages, submit, status, fetch, cancel, reconcile };
 ```
 
-## Testing a connector
+Rules:
+
+- `languages`, `submit`, `status`, and `fetch` are required. `cancel` and `reconcile` are optional. Define `cancel` only when `capabilities.cancel` is `true`.
+- All I/O goes through `host.message`: `egress` for vendor calls, `upload` for asset bytes, and `log`. Do not use `fetch`, timers, storage, or the DOM.
+- Return errors with `connectorError(code, message)`. Do not throw them. When `host.message` returns `{ error }`, return it as it is.
+- `state` holds vendor ids and cursors only. It is JSON, at most 64 KB, and never holds content or secrets. The host stores it and passes it to the next call.
+- Pass `submissionKey` to the vendor, so that `reconcile` can find the job after a crash.
+- Each call must finish in 15 s. Vendor work is async: submit, then poll with `status`.
+
+The `Connector` JSDoc type in [`src/contract.js`](src/contract.js) has every input and result shape.
+
+### Build
+
+```bash
+npx aem-connector-build
+```
+
+The build bundles `src/connector.js` into one self-contained ES module, `dist/connector.js`. It then writes `dist/connector.json`, which has the `version` from `package.json` and the bundle's `sha384` integrity. The build fails if the manifest is not valid, or if the bundle uses a banned global.
+
+## Test a connector
 
 `@adobe/aem-translation-connector-sdk/testing` has a fake host. It stands in for the real host in tests.
 
@@ -44,8 +119,8 @@ import { createFakeHost, createRecorder, saveInteractions } from '@adobe/aem-tra
 
 const recorder = createRecorder({ manifest });
 const { host } = createFakeHost({ manifest, recorder });
-// ...call the connector with host...
-await saveInteractions(new URL('fixtures/submit.json', import.meta.url), recorder.interactions);
+await connector.languages({ options }, host);
+await saveInteractions(new URL('fixtures/languages.json', import.meta.url), recorder.interactions);
 ```
 
 Record mode supports the `api-key-header`, `bearer-static`, and `basic` auth profiles.
@@ -54,13 +129,14 @@ Before it keeps an interaction, record mode removes credential values from the U
 
 ### Conformance suite
 
-Every connector must pass the conformance suite. It registers mocha tests:
+Every connector must pass the conformance suite. Run it against the built bundle, because that is what ships. It registers mocha tests:
 
 ```js
+import { readFile } from 'node:fs/promises';
 import { conformance, loadInteractions } from '@adobe/aem-translation-connector-sdk/testing';
-import connector from '../src/connector.js';
-import manifest from '../connector.json' with { type: 'json' };
+import connector from '../dist/connector.js';
 
+const manifest = JSON.parse(await readFile(new URL('../dist/connector.json', import.meta.url), 'utf-8'));
 const load = (name) => loadInteractions(new URL(`fixtures/${name}.json`, import.meta.url));
 
 conformance({
@@ -73,7 +149,7 @@ conformance({
     submit: { input: { title, items, targets, submissionKey }, interactions: await load('submit') },
     status: { interactions: await load('status') },
     fetch: { interactions: await load('fetch') },
-    errors: [{ name: 'bad key', method: 'languages', interactions: await load('auth-failed'), code: 'auth-failed' }],
+    errors: [{ method: 'languages', interactions: await load('auth-failed'), code: 'auth-failed' }],
   },
 });
 ```
@@ -88,4 +164,8 @@ The suite checks:
 - Each recorded interaction is used.
 - Each error scenario returns the expected error code.
 
-A connector receives the host as the second argument of each method, for example `submit(input, host)`.
+## Entry points
+
+- `@adobe/aem-translation-connector-sdk`: contract constants and types, error helpers, and the manifest schema and validator.
+- `@adobe/aem-translation-connector-sdk/testing`: fake host, recorder, conformance suite, and checks.
+- `@adobe/aem-translation-connector-sdk/build`: `buildConnector()`, the API behind `aem-connector-build`.

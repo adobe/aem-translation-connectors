@@ -1,0 +1,8 @@
+{
+  "interactions": [
+    {
+      "request": { "method": "POST", "url": "https://api.sample.example.com/v1/projects/demo/jobs" },
+      "response": { "status": 422, "body": "document p1 has no body" }
+    }
+  ]
+}

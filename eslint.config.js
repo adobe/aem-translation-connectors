@@ -22,6 +22,12 @@ export default defineConfig([
   {
     extends: [recommended],
   },
+  {
+    ignores: ['eslint.config.js'],
+    rules: {
+      'import/no-unresolved': ['error', { ignore: ['^@adobe/aem-translation-connector-sdk/', '/dist/'] }],
+    },
+  },
   source,
   {
     ...test,

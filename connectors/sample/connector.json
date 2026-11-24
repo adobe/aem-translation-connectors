@@ -1,0 +1,23 @@
+{
+  "id": "sample",
+  "name": "Sample",
+  "contract": 1,
+  "entry": "connector.js",
+  "egressHosts": ["api.sample.example.com"],
+  "credentials": [{ "name": "apiKey", "required": true }],
+  "auth": { "profile": "api-key-header", "header": "x-api-key", "credential": "apiKey" },
+  "options": {
+    "type": "object",
+    "properties": {
+      "project": { "type": "string", "description": "Vendor project that receives the jobs." }
+    },
+    "required": ["project"]
+  },
+  "capabilities": {
+    "cancel": true,
+    "maxBatchItems": 100,
+    "maxBatchBytes": 5000000,
+    "formats": ["html"],
+    "kinds": ["html"]
+  }
+}

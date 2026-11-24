@@ -1,0 +1,8 @@
+{
+  "interactions": [
+    {
+      "request": { "method": "GET", "url": "https://api.sample.example.com/v1/projects/demo/jobs/job-42/translations/de?ids=p1" },
+      "response": { "status": 200, "headers": { "content-type": "application/json" }, "body": "{\"documents\":[{\"id\":\"p1\",\"html\":\"<main><h1>Frühjahrsstart</h1><p>Unser neues Sortiment ist da.</p></main>\"}]}" }
+    }
+  ]
+}
