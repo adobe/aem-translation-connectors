@@ -11,3 +11,4 @@
  */
 
 export * from './fake-host.js';
+export * from './recorder.js';
