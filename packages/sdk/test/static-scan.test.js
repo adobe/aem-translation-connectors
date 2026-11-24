@@ -11,7 +11,7 @@
  */
 
 import assert from 'node:assert';
-import { scanFile, scanSource } from '../src/testing/index.js';
+import { scanFile, scanSource } from '../src/testing/static-scan.js';
 
 describe('scanSource', () => {
   it('allows a connector that only uses its own names', () => {

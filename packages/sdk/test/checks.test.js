@@ -14,7 +14,7 @@ import assert from 'node:assert';
 import {
   checkCancel, checkErrorResult, checkFetch, checkLanguages, checkModule, checkReconcile,
   checkState, checkStatus, checkSubmit,
-} from '../src/testing/index.js';
+} from '../src/testing/checks.js';
 
 const fn = async () => ({});
 const caps = {
