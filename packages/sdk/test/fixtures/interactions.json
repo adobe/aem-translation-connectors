@@ -1,0 +1,8 @@
+{
+  "interactions": [
+    {
+      "request": { "method": "POST", "url": "https://api.example.com/jobs", "body": { "name": "key-1" } },
+      "response": { "status": 201, "headers": { "Content-Type": "application/json" }, "body": "{\"id\":\"j1\"}" }
+    }
+  ]
+}
