@@ -11,7 +11,7 @@
  */
 
 import assert from 'node:assert';
-import { conformance } from '../src/testing/index.js';
+import { registerSuite as conformance } from '../src/testing/conformance.js';
 
 const API = 'https://api.example.com';
 const HTML = '<p>The full content of the page to translate.</p>';
