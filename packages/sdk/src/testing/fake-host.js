@@ -88,8 +88,12 @@ function checkUrl(url, patterns, field) {
  * @param {object} opts.manifest The connector manifest.
  * @param {object[]} [opts.interactions]
  * @param {Record<string, Uint8Array>} [opts.assets] Asset bytes by item id, for uploads.
+ * @param {{ send: Function }} [opts.recorder] From `createRecorder`. When set, calls go to the
+ *   real vendor instead of the interactions.
  */
-export function createFakeHost({ manifest, interactions = [], assets = {} }) {
+export function createFakeHost({
+  manifest, interactions = [], assets = {}, recorder,
+}) {
   const queue = interactions.map((interaction) => ({ interaction, used: false }));
   const calls = [];
   const logs = [];
@@ -143,7 +147,11 @@ export function createFakeHost({ manifest, interactions = [], assets = {} }) {
         throw new HostPolicyError(`unknown asset item: ${msg.itemId}`);
       }
       checkUrl(msg.url, manifest.signedUrlHosts, 'signedUrlHosts');
-      return replay('upload', method, msg.url);
+      return recorder
+        ? recorder.send('upload', {
+          method, url: msg.url, headers: msg.headers, bytes: assets[msg.itemId],
+        })
+        : replay('upload', method, msg.url);
     }
 
     checkUrl(msg.url, manifest.egressHosts, 'egressHosts');
@@ -153,7 +161,9 @@ export function createFakeHost({ manifest, interactions = [], assets = {} }) {
     if (Buffer.byteLength(msg.body ?? '') > LIMITS.egressBodyBytes) {
       return { error: { code: 'payload-too-large', message: 'egress body is over 10 MB' } };
     }
-    return replay('egress', method, msg.url, msg.body);
+    return recorder
+      ? recorder.send('egress', { ...msg, method })
+      : replay('egress', method, msg.url, msg.body);
   }
 
   return {
