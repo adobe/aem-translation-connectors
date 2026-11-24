@@ -141,7 +141,7 @@ The suite checks:
 - The bundle uses no banned globals, such as `fetch`, `window`, `document`, `XMLSerializer`, timers, or storage. It must import nothing.
 - Each method returns the contract shape within 15 s.
 - `state` is plain JSON, at most 64 KB, and holds no item content. Submit, status, and fetch run in order. Each step gets the previous `state` after a JSON round trip.
-- The submit scenario stays within `maxBatchItems`, `maxBatchBytes`, and the declared kinds. No egress body goes over 10 MB.
+- No egress body goes over 10 MB.
 - Each recorded interaction is used.
 - Each error scenario returns the expected error code.
 

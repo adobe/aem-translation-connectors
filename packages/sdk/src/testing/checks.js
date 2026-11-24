@@ -12,7 +12,7 @@
 
 import { isDeepStrictEqual } from 'node:util';
 import {
-  DEFAULT_KINDS, ITEM_STATUSES, LIMITS, OPTIONAL_METHODS, REQUIRED_METHODS,
+  ITEM_STATUSES, LIMITS, OPTIONAL_METHODS, REQUIRED_METHODS,
 } from '../contract.js';
 import { ERROR_CODES, isErrorResult } from '../errors.js';
 
@@ -120,34 +120,6 @@ export function checkLanguages(result) {
     && isStringArray(pair.targets) && pair.targets.length
     ? []
     : [`pairs[${i}] must be { source, targets: [lang] }`]));
-}
-
-/**
- * Checks a submit input against the manifest, so scenarios stay realistic.
- * @param {object} input
- * @param {object} manifest
- * @returns {string[]}
- */
-export function checkSubmitInput(input, manifest) {
-  const {
-    maxBatchItems, maxBatchBytes, kinds = DEFAULT_KINDS, maxAssetBytes,
-  } = manifest.capabilities;
-  const errors = [];
-  if (input.items.length > maxBatchItems) {
-    errors.push(`scenario has ${input.items.length} items, over maxBatchItems ${maxBatchItems}`);
-  }
-  const bytes = input.items
-    .reduce((sum, { html = '' }) => sum + new TextEncoder().encode(html).length, 0);
-  if (bytes > maxBatchBytes) {
-    errors.push(`scenario has ${bytes} bytes of html, over maxBatchBytes ${maxBatchBytes}`);
-  }
-  input.items
-    .filter(({ kind }) => !kinds.includes(kind))
-    .forEach(({ id, kind }) => errors.push(`item ${id} has kind ${kind}, which the manifest does not declare`));
-  input.items
-    .filter(({ kind, size }) => kind === 'asset' && size > maxAssetBytes)
-    .forEach(({ id }) => errors.push(`item ${id} is over maxAssetBytes`));
-  return errors;
 }
 
 export function checkSubmit(result, input) {

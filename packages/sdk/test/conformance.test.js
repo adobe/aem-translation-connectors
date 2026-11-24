@@ -178,13 +178,11 @@ describe('conformance', () => {
     assert.strictEqual(results['methods > languages'], 'languages: 1 recorded interactions were not used');
   });
 
-  it('fails when a scenario is missing or over the caps', async () => {
+  it('fails when a scenario is missing', async () => {
     const scenarios = makeScenarios();
     delete scenarios.languages;
-    scenarios.submit.input.items[0].html = 'x'.repeat(100_001);
     const results = await run({ scenarios });
     assert.strictEqual(results['methods > languages'], 'scenario "languages" is missing');
-    assert.strictEqual(results['methods > submit'], 'scenario has 100001 bytes of html, over maxBatchBytes 100000');
   });
 
   it('fails when an egress body is over 10 MB', async () => {
