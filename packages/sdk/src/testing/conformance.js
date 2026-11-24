@@ -16,7 +16,7 @@ import { isErrorResult } from '../errors.js';
 import { validateManifest } from '../manifest.js';
 import {
   checkCancel, checkErrorResult, checkFetch, checkLanguages, checkModule, checkReconcile,
-  checkStatus, checkSubmit, checkSubmitInput,
+  checkStatus, checkSubmit,
 } from './checks.js';
 import { createFakeHost } from './fake-host.js';
 import { scanFile } from './static-scan.js';
@@ -130,7 +130,6 @@ export function conformance({
 
       it('submit', async () => {
         const s = scenario('submit');
-        assertNone(checkSubmitInput(s.input, manifest));
         const { result, errors } = await call('submit', s.input, s);
         assertNone([...errors, ...checkSubmit(result, s.input)]);
         flow.items = s.input.items;

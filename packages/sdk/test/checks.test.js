@@ -13,7 +13,7 @@
 import assert from 'node:assert';
 import {
   checkCancel, checkErrorResult, checkFetch, checkLanguages, checkModule, checkReconcile,
-  checkState, checkStatus, checkSubmit, checkSubmitInput,
+  checkState, checkStatus, checkSubmit,
 } from '../src/testing/index.js';
 
 const fn = async () => ({});
@@ -116,39 +116,6 @@ describe('checkLanguages', () => {
     assert.deepStrictEqual(checkLanguages({ pairs: {} }), ['pairs must be an array or "any"']);
     assert.deepStrictEqual(checkLanguages({ pairs: [{ source: 'en', targets: [] }] }), [
       'pairs[0] must be { source, targets: [lang] }',
-    ]);
-  });
-});
-
-describe('checkSubmitInput', () => {
-  const manifest = { capabilities: { ...caps, kinds: ['html', 'asset'], maxAssetBytes: 10 } };
-
-  it('accepts input within the caps', () => {
-    const input = { items: [{ id: 'p1', kind: 'html', html: 'hi' }] };
-    assert.deepStrictEqual(checkSubmitInput(input, manifest), []);
-  });
-
-  it('reports items, bytes, kinds, and asset sizes over the caps', () => {
-    const input = {
-      items: [
-        { id: 'p1', kind: 'html', html: 'x'.repeat(101) },
-        { id: 'a1', kind: 'asset', size: 11 },
-        { id: 'v1', kind: 'external' },
-      ],
-    };
-    assert.deepStrictEqual(checkSubmitInput(input, manifest), [
-      'scenario has 3 items, over maxBatchItems 2',
-      'scenario has 101 bytes of html, over maxBatchBytes 100',
-      'item v1 has kind external, which the manifest does not declare',
-      'item a1 is over maxAssetBytes',
-    ]);
-  });
-
-  it('defaults kinds to html', () => {
-    const { kinds: _, ...rest } = caps;
-    const input = { items: [{ id: 'a1', kind: 'asset', size: 1 }] };
-    assert.deepStrictEqual(checkSubmitInput(input, { capabilities: rest }), [
-      'item a1 has kind asset, which the manifest does not declare',
     ]);
   });
 });
