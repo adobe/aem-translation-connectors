@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.js",
     "./testing": "./src/testing/index.js",
-    "./build": "./src/build/index.js"
+    "./build": "./src/build/index.js",
+    "./release": "./src/release/index.js"
   },
   "files": [
     "src",
@@ -49,7 +50,8 @@
     "esbuild": "0.28.2"
   },
   "bin": {
-    "aem-connector-build": "bin/build-connector.js"
+    "aem-connector-build": "bin/build-connector.js",
+    "aem-connector-check-release": "bin/check-release.js"
   },
   "sideEffects": false,
   "main": "src/index.js"

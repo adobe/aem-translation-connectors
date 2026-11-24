@@ -10,7 +10,8 @@
     "test": "npm test --workspaces --if-present",
     "semantic-release": "npm run semantic-release --workspaces --if-present",
     "semantic-release-dry": "npm run semantic-release-dry --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "check-release": "aem-connector-check-release"
   },
   "repository": {
     "type": "git",

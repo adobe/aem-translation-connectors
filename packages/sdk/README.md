@@ -191,3 +191,17 @@ conformance({
 - The suite replays each fixture in the same major as `manifest.version` against the current bundle. Fixtures from other majors are skipped.
 - `CONNECTOR_SAVE_STATES=1` writes the fixture for the current version. Commit it with the release. The sample has an `npm run save-states` script for this.
 - State checks need the built `dist/connector.json`, because they read `version` from it.
+
+## Release rules
+
+Within a major, a site can move to a new release without any action from an admin. So some manifest changes need a new major:
+
+- a new `egressHosts` or `signedUrlHosts` host
+- a new required credential field, or an optional one that becomes required
+- a new required option
+- a changed `auth.profile`
+- a removed `kind`
+
+`aem-connector-check-release --base <ref>` compares each `connectors/*/connector.json` with `<ref>`. When a connector has one of these changes, a commit since `<ref>` that touches the connector must mark a breaking change: `feat(<id>)!: …` or a `BREAKING CHANGE:` footer. Semantic-release then releases a new major. CI runs the check against `origin/main` on branches, and against the previous commit on `main`.
+
+The repo merges with squash, so the PR title becomes the commit on `main`. Put the `!` in the PR title too.
