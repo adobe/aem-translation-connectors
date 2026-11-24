@@ -7,6 +7,7 @@ Each connector is a single ES module that implements the connector contract. The
 ## Layout
 
 - `packages/sdk`: the contract, the connector build, a fake host for tests, and the conformance suite. See its [README](packages/sdk/README.md) to write a connector.
+- `packages/registry`: which version of each connector major is live, with its integrity and lifecycle.
 - `connectors/{id}`: one folder per connector. [`connectors/sample`](connectors/sample) is the example to copy.
 
 ## Development

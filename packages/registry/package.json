@@ -1,0 +1,51 @@
+{
+  "name": "@adobe/aem-translation-connector-registry",
+  "version": "0.0.0",
+  "description": "Which version of each AEM translation connector major is live, with its integrity and lifecycle",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./validate": "./src/validate.js",
+    "./registry.json": "./registry.json"
+  },
+  "files": [
+    "src",
+    "registry.json"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "test": "c8 mocha",
+    "lint": "eslint .",
+    "semantic-release": "semantic-release",
+    "semantic-release-dry": "semantic-release --dry-run --branches $CI_BRANCH"
+  },
+  "mocha": {
+    "reporter": "mocha-multi-reporters",
+    "reporter-options": "configFile=.mocha-multi.json",
+    "require": [
+      "mocha-suppress-logs"
+    ],
+    "spec": "test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/aem-translation-connectors.git",
+    "directory": "packages/registry"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/adobe/aem-translation-connectors/issues"
+  },
+  "homepage": "https://github.com/adobe/aem-translation-connectors/tree/main/packages/registry#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@adobe/aem-translation-connector-sdk": "*",
+    "ajv": "8.20.0"
+  }
+}
