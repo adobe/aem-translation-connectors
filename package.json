@@ -1,0 +1,33 @@
+{
+  "name": "@adobe/aem-translation-connectors",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Translation connectors for AEM",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/aem-translation-connectors.git"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/adobe/aem-translation-connectors/issues"
+  },
+  "homepage": "https://github.com/adobe/aem-translation-connectors#readme",
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@adobe/eslint-config-helix": "3.0.35",
+    "@eslint/config-helpers": "0.7.0",
+    "eslint": "9.39.5",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.2"
+  },
+  "lint-staged": {
+    "*.js": "eslint"
+  }
+}
