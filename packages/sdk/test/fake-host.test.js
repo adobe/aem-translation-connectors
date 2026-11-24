@@ -13,7 +13,7 @@
 import assert from 'node:assert';
 import {
   createFakeHost, hostMatches, HostPolicyError, loadInteractions,
-} from '../src/testing/index.js';
+} from '../src/testing/fake-host.js';
 
 const manifest = {
   egressHosts: ['api.example.com', '*.vendor.example'],

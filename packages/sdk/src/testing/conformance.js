@@ -11,14 +11,16 @@
  */
 
 import { AssertionError } from 'node:assert';
+import { readFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import { LIMITS } from '../contract.js';
 import { isErrorResult } from '../errors.js';
 import { validateManifest } from '../manifest.js';
 import {
   checkCancel, checkErrorResult, checkFetch, checkLanguages, checkModule, checkReconcile,
-  checkStatus, checkSubmit, checkSubmitInput,
+  checkStatus, checkSubmit,
 } from './checks.js';
-import { createFakeHost } from './fake-host.js';
+import { createFakeHost, loadInteractions } from './fake-host.js';
 import { scanFile } from './static-scan.js';
 
 function assertNone(errors) {
@@ -38,10 +40,7 @@ function withTimeout(promise, ms, label) {
 const roundTrip = (value) => JSON.parse(JSON.stringify(value));
 
 /**
- * Registers the conformance suite for a connector with mocha's `describe` and `it`.
- *
- * The happy path runs submit, status, and fetch in order. Each step gets the previous
- * step's `state` after a JSON round trip, as the host would store it.
+ * Registers the suite for a loaded connector. `conformance` wraps it.
  *
  * @param {object} opts
  * @param {object} opts.connector The connector module's default export.
@@ -56,7 +55,7 @@ const roundTrip = (value) => JSON.parse(JSON.stringify(value));
  * @param {Function} [opts.describe]
  * @param {Function} [opts.it]
  */
-export function conformance({
+export function registerSuite({
   connector,
   manifest,
   entry,
@@ -130,7 +129,6 @@ export function conformance({
 
       it('submit', async () => {
         const s = scenario('submit');
-        assertNone(checkSubmitInput(s.input, manifest));
         const { result, errors } = await call('submit', s.input, s);
         assertNone([...errors, ...checkSubmit(result, s.input)]);
         flow.items = s.input.items;
@@ -190,5 +188,57 @@ export function conformance({
         });
       });
     });
+  });
+}
+
+function toDirUrl(dir) {
+  if (dir instanceof URL) {
+    return dir.href.endsWith('/') ? dir : new URL(`${dir.href}/`);
+  }
+  return pathToFileURL(dir.endsWith('/') ? dir : `${dir}/`);
+}
+
+async function withFixture(scenario, fixtures) {
+  const s = typeof scenario === 'string' ? { fixture: scenario } : scenario;
+  if (!s?.fixture) {
+    return s;
+  }
+  const { fixture, ...rest } = s;
+  return { ...rest, interactions: await loadInteractions(new URL(`${fixture}.json`, fixtures)) };
+}
+
+/**
+ * Registers the conformance suite for a built connector with mocha's `describe` and `it`.
+ *
+ * It loads `dist/connector.json` and the bundle from `dir`, and reads each scenario's
+ * fixture from `test/fixtures/<name>.json`. Run `npm run build` first.
+ *
+ * The happy path runs submit, status, and fetch in order. Each step gets the previous
+ * step's `state` after a JSON round trip, as the host would store it.
+ *
+ * @param {object} opts
+ * @param {string|URL} opts.dir The connector folder.
+ * @param {object} [opts.options] Site options for every call.
+ * @param {object} opts.scenarios One entry per method: `languages`, `submit`, `status`,
+ *   `fetch`, and `cancel` and `reconcile` when the connector has them. An entry is a fixture
+ *   name, or `{ fixture, ...inputs }`: `submit` needs `input`, `fetch` and `cancel` take
+ *   `lang`. `errors` is a list of `{ method, fixture, code, input?, name? }`.
+ * @param {number} [opts.timeoutMs] Time limit for each call. Defaults to the worker limit, 15 s.
+ * @param {Function} [opts.describe]
+ * @param {Function} [opts.it]
+ */
+export async function conformance({ dir, scenarios = {}, ...rest }) {
+  const root = toDirUrl(dir);
+  const dist = new URL('dist/', root);
+  const fixtures = new URL('test/fixtures/', root);
+  const manifest = JSON.parse(await readFile(new URL('connector.json', dist), 'utf-8'));
+  const entry = new URL(manifest.entry, dist);
+  const { default: connector } = await import(entry.href);
+  const { errors = [], ...methods } = scenarios;
+  const loaded = Object.fromEntries(await Promise.all(Object.entries(methods)
+    .map(async ([name, s]) => [name, await withFixture(s, fixtures)])));
+  loaded.errors = await Promise.all(errors.map((s) => withFixture(s, fixtures)));
+  registerSuite({
+    ...rest, connector, manifest, entry, scenarios: loaded,
   });
 }

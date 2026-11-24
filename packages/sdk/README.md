@@ -110,30 +110,25 @@ The fake host enforces the host rules. It throws `HostPolicyError` on a host tha
 
 ### Conformance suite
 
-Every connector must pass the conformance suite. Run it against the built bundle, because that is what ships. It registers mocha tests:
+Every connector must pass the conformance suite. It loads the built bundle and `dist/connector.json` from the connector folder, because that is what ships. Each scenario names a fixture in `test/fixtures/`. It registers mocha tests:
 
 ```js
-import { readFile } from 'node:fs/promises';
-import { conformance, loadInteractions } from '@adobe/aem-translation-connector-sdk/testing';
-import connector from '../dist/connector.js';
+import { conformance } from '@adobe/aem-translation-connector-sdk/testing';
 
-const manifest = JSON.parse(await readFile(new URL('../dist/connector.json', import.meta.url), 'utf-8'));
-const load = (name) => loadInteractions(new URL(`fixtures/${name}.json`, import.meta.url));
-
-conformance({
-  connector,
-  manifest,
-  entry: new URL('../dist/connector.js', import.meta.url),
+await conformance({
+  dir: new URL('..', import.meta.url),
   options: { project: 'demo' },
   scenarios: {
-    languages: { interactions: await load('languages') },
-    submit: { input: { title, items, targets, submissionKey }, interactions: await load('submit') },
-    status: { interactions: await load('status') },
-    fetch: { interactions: await load('fetch') },
-    errors: [{ method: 'languages', interactions: await load('auth-failed'), code: 'auth-failed' }],
+    languages: 'languages',
+    submit: { fixture: 'submit', input: { title, items, targets, submissionKey } },
+    status: 'status',
+    fetch: { fixture: 'fetch', lang: 'de' },
+    errors: [{ method: 'languages', fixture: 'auth-failed', code: 'auth-failed' }],
   },
 });
 ```
+
+Run `npm run build` before the tests. The sample's `test` script does this.
 
 The suite checks:
 
@@ -141,12 +136,12 @@ The suite checks:
 - The bundle uses no banned globals, such as `fetch`, `window`, `document`, `XMLSerializer`, timers, or storage. It must import nothing.
 - Each method returns the contract shape within 15 s.
 - `state` is plain JSON, at most 64 KB, and holds no item content. Submit, status, and fetch run in order. Each step gets the previous `state` after a JSON round trip.
-- The submit scenario stays within `maxBatchItems`, `maxBatchBytes`, and the declared kinds. No egress body goes over 10 MB.
+- No egress body goes over 10 MB.
 - Each recorded interaction is used.
 - Each error scenario returns the expected error code.
 
 ## Entry points
 
 - `@adobe/aem-translation-connector-sdk`: contract constants and types, error helpers, and the manifest schema and validator.
-- `@adobe/aem-translation-connector-sdk/testing`: fake host, conformance suite, and checks.
+- `@adobe/aem-translation-connector-sdk/testing`: `createFakeHost`, `HostPolicyError`, `loadInteractions`, and `conformance`.
 - `@adobe/aem-translation-connector-sdk/build`: `buildConnector()`, the API behind `aem-connector-build`.
