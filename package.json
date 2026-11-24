@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "lint": "eslint .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "npm test --workspaces --if-present",
+    "semantic-release": "npx --no --workspaces semantic-release",
+    "semantic-release-dry": "npx --no --workspaces semantic-release --dry-run --branches $CI_BRANCH"
   },
   "repository": {
     "type": "git",
@@ -23,11 +26,23 @@
   "devDependencies": {
     "@adobe/eslint-config-helix": "3.0.35",
     "@eslint/config-helpers": "0.7.0",
+    "@semantic-release/changelog": "7.0.0",
+    "@semantic-release/git": "11.0.1",
+    "@semantic-release/npm": "13.2.0",
+    "c8": "12.0.0",
     "eslint": "9.39.5",
     "husky": "9.1.7",
-    "lint-staged": "17.6.2"
+    "lint-staged": "17.6.2",
+    "mocha": "12.0.3",
+    "mocha-multi-reporters": "1.5.2",
+    "mocha-suppress-logs": "0.6.0",
+    "semantic-release": "25.0.9",
+    "semantic-release-monorepo": "8.0.2"
   },
   "lint-staged": {
     "*.js": "eslint"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
