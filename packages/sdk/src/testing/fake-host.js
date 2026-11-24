@@ -124,7 +124,7 @@ export function createFakeHost({ manifest, interactions = [], assets = {} }) {
 
   async function message(msg) {
     if (!msg || !HOST_MESSAGE_TYPES.includes(msg.type)) {
-      throw new TypeError(`unknown host message type: ${msg?.type}`);
+      return { error: { code: 'unsupported-message', message: `unknown host message type: ${msg?.type}` } };
     }
     calls.push(structuredClone(msg));
 
@@ -132,8 +132,8 @@ export function createFakeHost({ manifest, interactions = [], assets = {} }) {
       if (!LOG_LEVELS.includes(msg.level)) {
         throw new TypeError(`unknown log level: ${msg.level}`);
       }
-      logs.push({ level: msg.level, message: msg.message });
-      return undefined;
+      logs.push({ level: msg.level, message: msg.message, data: msg.data });
+      return {};
     }
 
     const method = (msg.method ?? (msg.type === 'upload' ? 'PUT' : 'GET')).toUpperCase();

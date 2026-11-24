@@ -44,3 +44,9 @@ describe('errors', () => {
     assert.strictEqual(isErrorResult(null), false);
   });
 });
+
+describe('host error codes', () => {
+  it('include unsupported-message', () => {
+    assert.strictEqual(isErrorResult({ error: { code: 'unsupported-message', message: 'x' } }), true);
+  });
+});

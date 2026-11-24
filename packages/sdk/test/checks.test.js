@@ -146,7 +146,7 @@ describe('checkStatus', () => {
   const ctx = { ids: ['p1'], targets: ['de'] };
 
   it('accepts known items and progress', () => {
-    const result = { state: {}, items: [{ id: 'p1', lang: 'de', status: 'ready' }], progress: 100 };
+    const result = { state: {}, items: [{ id: 'p1', lang: 'de', status: 'ready' }], progress: 0.5 };
     assert.deepStrictEqual(checkStatus(result, ctx), []);
   });
 
@@ -159,14 +159,14 @@ describe('checkStatus', () => {
     const result = {
       state: {},
       items: [null, { id: 'p9', lang: 'xx', status: 'done' }],
-      progress: 101,
+      progress: 1.5,
     };
     assert.deepStrictEqual(checkStatus(result, ctx), [
       'items[0] must be an object',
       'items[1] has unknown id p9',
       'items[1] has unknown lang xx',
       'items[1] has unknown status done',
-      'progress must be a number from 0 to 100',
+      'progress must be a number from 0 to 1',
     ]);
   });
 });
