@@ -1,0 +1,8 @@
+{
+  "interactions": [
+    {
+      "request": { "method": "POST", "url": "https://api.sample.example.com/v1/projects/demo/jobs/job-42/cancel" },
+      "response": { "status": 500, "body": "" }
+    }
+  ]
+}

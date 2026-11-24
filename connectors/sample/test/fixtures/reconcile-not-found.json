@@ -1,0 +1,8 @@
+{
+  "interactions": [
+    {
+      "request": { "method": "GET", "url": "https://api.sample.example.com/v1/projects/demo/jobs?name=sub-9" },
+      "response": { "status": 200, "headers": { "content-type": "application/json" }, "body": "{\"jobs\":[]}" }
+    }
+  ]
+}

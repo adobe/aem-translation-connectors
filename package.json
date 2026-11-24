@@ -8,8 +8,9 @@
     "lint": "eslint .",
     "prepare": "husky",
     "test": "npm test --workspaces --if-present",
-    "semantic-release": "npx --no --workspaces semantic-release",
-    "semantic-release-dry": "npx --no --workspaces semantic-release --dry-run --branches $CI_BRANCH"
+    "semantic-release": "npm run semantic-release --workspaces --if-present",
+    "semantic-release-dry": "npm run semantic-release-dry --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
   },
   "repository": {
     "type": "git",
@@ -43,6 +44,7 @@
     "*.js": "eslint"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "connectors/*"
   ]
 }

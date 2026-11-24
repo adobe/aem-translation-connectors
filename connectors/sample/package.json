@@ -1,0 +1,32 @@
+{
+  "name": "@adobe/aem-translation-connector-sample",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sample AEM translation connector that shows the contract and passes the conformance suite",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "aem-connector-build",
+    "test": "npm run build && c8 mocha",
+    "lint": "eslint ."
+  },
+  "mocha": {
+    "reporter": "mocha-multi-reporters",
+    "reporter-options": "configFile=.mocha-multi.json",
+    "require": [
+      "mocha-suppress-logs"
+    ],
+    "spec": "test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/aem-translation-connectors.git",
+    "directory": "connectors/sample"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@adobe/aem-translation-connector-sdk": "*"
+  }
+}

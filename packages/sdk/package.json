@@ -5,14 +5,18 @@
   "type": "module",
   "exports": {
     ".": "./src/index.js",
-    "./testing": "./src/testing/index.js"
+    "./testing": "./src/testing/index.js",
+    "./build": "./src/build/index.js"
   },
   "files": [
-    "src"
+    "src",
+    "bin"
   ],
   "scripts": {
     "test": "c8 mocha",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "semantic-release": "semantic-release",
+    "semantic-release-dry": "semantic-release --dry-run --branches $CI_BRANCH"
   },
   "mocha": {
     "reporter": "mocha-multi-reporters",
@@ -41,6 +45,12 @@
   "dependencies": {
     "acorn": "8.19.0",
     "acorn-walk": "8.3.5",
-    "ajv": "8.20.0"
-  }
+    "ajv": "8.20.0",
+    "esbuild": "0.28.2"
+  },
+  "bin": {
+    "aem-connector-build": "bin/build-connector.js"
+  },
+  "sideEffects": false,
+  "main": "src/index.js"
 }

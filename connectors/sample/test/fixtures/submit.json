@@ -1,0 +1,20 @@
+{
+  "interactions": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "https://api.sample.example.com/v1/projects/demo/jobs",
+        "body": {
+          "name": "sub-1",
+          "title": "Spring launch",
+          "due": "2026-12-01",
+          "targets": ["de", "fr"],
+          "documents": [
+            { "id": "p1", "html": "<main><h1>Spring launch</h1><p>Our new range is here.</p></main>", "path": "/spring", "source": "en" }
+          ]
+        }
+      },
+      "response": { "status": 201, "headers": { "content-type": "application/json" }, "body": "{\"id\":\"job-42\"}" }
+    }
+  ]
+}
