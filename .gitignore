@@ -1,0 +1,10 @@
+coverage/
+node_modules/
+junit/
+dist/
+logs/
+tmp/
+.DS_Store
+test-results.xml
+.npmrc
+.claude
