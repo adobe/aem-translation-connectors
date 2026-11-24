@@ -178,8 +178,8 @@ export function checkStatus(result, { ids, targets, items = [] }) {
     }
   });
   if (result.progress !== undefined
-    && !(Number.isFinite(result.progress) && result.progress >= 0 && result.progress <= 100)) {
-    errors.push('progress must be a number from 0 to 100');
+    && !(Number.isFinite(result.progress) && result.progress >= 0 && result.progress <= 1)) {
+    errors.push('progress must be a number from 0 to 1');
   }
   return errors;
 }

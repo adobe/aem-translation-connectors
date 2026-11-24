@@ -100,7 +100,7 @@ async function status({ options, state }, host) {
     items: res.data.documents.map(({ id, lang, state: s }) => ({
       id, lang, status: STATUSES[s] ?? 'in-progress',
     })),
-    progress: res.data.progress,
+    progress: res.data.progress === undefined ? undefined : res.data.progress / 100,
   };
 }
 

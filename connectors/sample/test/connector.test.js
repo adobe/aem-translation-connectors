@@ -29,6 +29,11 @@ describe('sample connector', () => {
     assert.deepStrictEqual(result, { notFound: true });
   });
 
+  it('reports vendor progress as a fraction', async () => {
+    const result = await connector.status({ options, state: { jobId: 'job-42' } }, await hostFor('status'));
+    assert.strictEqual(result.progress, 0.5);
+  });
+
   it('maps unknown vendor states to in-progress', async () => {
     const result = await connector.status({ options, state: { jobId: 'job-42' } }, await hostFor('status-unknown'));
     assert.deepStrictEqual(result.items, [{ id: 'p1', lang: 'de', status: 'in-progress' }]);

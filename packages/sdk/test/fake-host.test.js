@@ -150,18 +150,22 @@ describe('createFakeHost', () => {
     await assert.rejects(host.message({ type: 'upload', itemId: 'a1', url: 'https://x.test/' }), HostPolicyError);
   });
 
-  it('collects logs and records every call', async () => {
+  it('collects logs with their data and records every call', async () => {
     const { host, logs, calls } = createFakeHost({ manifest });
-    assert.strictEqual(await host.message({ type: 'log', level: 'info', message: 'hi' }), undefined);
+    assert.deepStrictEqual(await host.message({
+      type: 'log', level: 'info', message: 'hi', data: { jobId: 'j1' },
+    }), {});
     await assert.rejects(host.message({ type: 'log', level: 'loud', message: 'x' }), /unknown log level/);
-    assert.deepStrictEqual(logs, [{ level: 'info', message: 'hi' }]);
+    assert.deepStrictEqual(logs, [{ level: 'info', message: 'hi', data: { jobId: 'j1' } }]);
     assert.strictEqual(calls.length, 2);
   });
 
-  it('rejects unknown message types', async () => {
+  it('returns unsupported-message for unknown message types', async () => {
     const { host } = createFakeHost({ manifest });
-    await assert.rejects(host.message({ type: 'fetch' }), /unknown host message type/);
-    await assert.rejects(host.message(null), /unknown host message type/);
+    assert.deepStrictEqual(await host.message({ type: 'fetch' }), {
+      error: { code: 'unsupported-message', message: 'unknown host message type: fetch' },
+    });
+    assert.strictEqual((await host.message(null)).error.code, 'unsupported-message');
   });
 });
 

@@ -107,7 +107,8 @@ export const LIMITS = Object.freeze({
  * @typedef {object} SubmitInput
  * @property {Options} options
  * @property {Record<string, unknown>} [submitOptions]
- * @property {Record<string, string>} [context] Files read from DA, keyed by manifest name.
+ * @property {Record<string, { path: string, contentType: string, body: string }>} [context]
+ *   Files read from DA, keyed by manifest name.
  * @property {string} title
  * @property {Item[]} items
  * @property {string[]} targets
@@ -126,7 +127,7 @@ export const LIMITS = Object.freeze({
  * @typedef {object} StatusResult
  * @property {State} state
  * @property {{ id: string, lang: string, status: ItemStatus }[]} items
- * @property {number} [progress] 0 to 100.
+ * @property {number} [progress] 0 to 1.
  */
 
 /**
@@ -164,6 +165,7 @@ export const LIMITS = Object.freeze({
  * @property {'log'} type
  * @property {'debug'|'info'|'warn'|'error'} level
  * @property {string} message
+ * @property {Record<string, unknown>} [data] Diagnostics. No content.
  */
 
 /**
@@ -177,10 +179,10 @@ export const LIMITS = Object.freeze({
 /**
  * @typedef {object} Host
  * @property {(msg: EgressMessage|UploadMessage|LogMessage)
- *   => Promise<HostResponse|import('./errors.js').ErrorResult|void>} message
+ *   => Promise<HostResponse|import('./errors.js').ErrorResult|{}>} message
  *   The only I/O a connector may do. Resolves to an ErrorResult with a host error code
- *   (`timeout`, `payload-too-large`, `vendor-sign-in-required`) when the host stops the call.
- *   `log` resolves to nothing.
+ *   (`timeout`, `payload-too-large`, `vendor-sign-in-required`, `unsupported-message`) when
+ *   the host stops the call. `log` resolves to `{}`.
  */
 
 /**

@@ -23,6 +23,7 @@ export const HOST_ERROR_CODES = Object.freeze([
   'timeout',
   'payload-too-large',
   'vendor-sign-in-required',
+  'unsupported-message',
 ]);
 
 export const ERROR_CODES = Object.freeze([...CONNECTOR_ERROR_CODES, ...HOST_ERROR_CODES]);

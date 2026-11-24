@@ -49,7 +49,7 @@ function makeConnector(overrides = {}) {
     },
     async status({ state }, host) {
       const { items } = await json(host, 'GET', `/jobs/${state.jobId}`);
-      return { state, items, progress: 50 };
+      return { state, items, progress: 0.5 };
     },
     async fetch({ state, lang, ids }, host) {
       const { pages } = await json(host, 'GET', `/jobs/${state.jobId}/${lang}`);
