@@ -51,3 +51,41 @@ await saveInteractions(new URL('fixtures/submit.json', import.meta.url), recorde
 Record mode supports the `api-key-header`, `bearer-static`, and `basic` auth profiles.
 
 Before it keeps an interaction, record mode removes credential values from the URL, the request body, the response headers, and text response bodies. It also drops the `set-cookie`, `authorization`, and `www-authenticate` response headers. It cannot redact binary bodies. Check each fixture before you commit it.
+
+### Conformance suite
+
+Every connector must pass the conformance suite. It registers mocha tests:
+
+```js
+import { conformance, loadInteractions } from '@adobe/aem-translation-connector-sdk/testing';
+import connector from '../src/connector.js';
+import manifest from '../connector.json' with { type: 'json' };
+
+const load = (name) => loadInteractions(new URL(`fixtures/${name}.json`, import.meta.url));
+
+conformance({
+  connector,
+  manifest,
+  entry: new URL('../dist/connector.js', import.meta.url),
+  options: { project: 'demo' },
+  scenarios: {
+    languages: { interactions: await load('languages') },
+    submit: { input: { title, items, targets, submissionKey }, interactions: await load('submit') },
+    status: { interactions: await load('status') },
+    fetch: { interactions: await load('fetch') },
+    errors: [{ name: 'bad key', method: 'languages', interactions: await load('auth-failed'), code: 'auth-failed' }],
+  },
+});
+```
+
+The suite checks:
+
+- The manifest is valid, and the module exports the contract methods. `cancel` must match `capabilities.cancel`.
+- The bundle uses no banned globals, such as `fetch`, `window`, `document`, `XMLSerializer`, timers, or storage. It must import nothing.
+- Each method returns the contract shape within 15 s.
+- `state` is plain JSON, at most 64 KB, and holds no item content. Submit, status, and fetch run in order. Each step gets the previous `state` after a JSON round trip.
+- The submit scenario stays within `maxBatchItems`, `maxBatchBytes`, and the declared kinds. No egress body goes over 10 MB.
+- Each recorded interaction is used.
+- Each error scenario returns the expected error code.
+
+A connector receives the host as the second argument of each method, for example `submit(input, host)`.
