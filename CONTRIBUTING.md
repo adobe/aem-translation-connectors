@@ -57,6 +57,7 @@ A connector depends only on `@adobe/aem-translation-connector-sdk`.
 - `egressHosts` lists vendor API hosts only. Never add shared hosting or a CDN.
 - The connector never handles credentials. The gateway adds them by `auth.profile`.
 - `state` holds vendor ids and cursors only, never content or secrets.
+- A release must read the `state` of jobs that the previous release started. Jobs can stay open for days.
 - Fixtures hold no credentials, tokens, or customer content.
 
 ## Keep majors rare
