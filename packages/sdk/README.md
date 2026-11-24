@@ -148,5 +148,5 @@ The suite checks:
 ## Entry points
 
 - `@adobe/aem-translation-connector-sdk`: contract constants and types, error helpers, and the manifest schema and validator.
-- `@adobe/aem-translation-connector-sdk/testing`: fake host, conformance suite, and checks.
+- `@adobe/aem-translation-connector-sdk/testing`: `createFakeHost`, `HostPolicyError`, `loadInteractions`, and `conformance`.
 - `@adobe/aem-translation-connector-sdk/build`: `buildConnector()`, the API behind `aem-connector-build`.

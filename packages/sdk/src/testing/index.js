@@ -10,7 +10,5 @@
  * governing permissions and limitations under the License.
  */
 
-export * from './fake-host.js';
-export * from './checks.js';
-export * from './static-scan.js';
-export * from './conformance.js';
+export { createFakeHost, HostPolicyError, loadInteractions } from './fake-host.js';
+export { conformance } from './conformance.js';
