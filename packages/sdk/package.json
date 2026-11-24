@@ -1,0 +1,40 @@
+{
+  "name": "@adobe/aem-translation-connector-sdk",
+  "version": "0.0.0",
+  "description": "Contract, fake host, and conformance suite for AEM translation connectors",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "c8 mocha",
+    "lint": "eslint ."
+  },
+  "mocha": {
+    "reporter": "mocha-multi-reporters",
+    "reporter-options": "configFile=.mocha-multi.json",
+    "require": [
+      "mocha-suppress-logs"
+    ],
+    "spec": "test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/aem-translation-connectors.git",
+    "directory": "packages/sdk"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/adobe/aem-translation-connectors/issues"
+  },
+  "homepage": "https://github.com/adobe/aem-translation-connectors/tree/main/packages/sdk#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

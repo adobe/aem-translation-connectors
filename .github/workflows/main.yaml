@@ -1,8 +1,14 @@
 name: Build
 on: [push]
 
+env:
+  CI_BUILD_NUM: ${{ github.run_id }}
+  CI_BRANCH: ${{ github.ref_name }}
+
 permissions:
-  contents: read
+  contents: write  # semantic-release-dry verifies the write permissions
+  issues: read # needed by semantic-release
+  pull-requests: write # needed by semantic-release
 
 jobs:
   test:
@@ -16,3 +22,8 @@ jobs:
           node-version: '24.x'
       - run: npm ci
       - run: npm run lint
+      - run: npm test
+      - name: Semantic Release (Dry Run)
+        run: npm run semantic-release-dry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
